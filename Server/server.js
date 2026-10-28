@@ -21,6 +21,9 @@ const PORT = Number(process.env.PORT) || 5000;
 const JWT_SECRET = process.env.JWT_SECRET;
 const isProduction = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
 const cookieSameSite = process.env.COOKIE_SAME_SITE || (isProduction ? "none" : "lax");
+const defaultClientOrigin = isProduction
+  ? "https://habit-tracker-seven-ebon.vercel.app"
+  : "http://localhost:5173";
 const authCookieOptions = {
   httpOnly: true,
   secure: isProduction || cookieSameSite === "none",
@@ -40,14 +43,27 @@ if (!JWT_SECRET && require.main === module) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const allowedClientOrigins = new Set(
-  (process.env.CLIENT_ORIGIN || "http://localhost:5173")
-    .split(",")
-    .map((origin) => origin.trim())
+  [defaultClientOrigin, ...(process.env.CLIENT_ORIGIN || "").split(",")]
+    .map((origin) => {
+      const candidates = origin.match(/https?:\/\/[^\s)\]]+/g);
+      const candidate = candidates?.at(-1) || origin.trim();
+      try {
+        return new URL(candidate).origin;
+      } catch {
+        return "";
+      }
+    })
     .filter(Boolean),
 );
 app.use(cors({
   origin(origin, callback) {
-    return callback(null, !origin || allowedClientOrigins.has(origin));
+    let requestOrigin = origin;
+    try {
+      if (origin) requestOrigin = new URL(origin).origin;
+    } catch {
+      return callback(null, false);
+    }
+    return callback(null, !origin || allowedClientOrigins.has(requestOrigin));
   },
   credentials: true,
 }));
