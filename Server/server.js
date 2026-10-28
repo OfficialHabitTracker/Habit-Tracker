@@ -25,6 +25,11 @@ const authCookieOptions = {
   path: "/",
 };
 
+const dbSslCa = process.env.DB_SSL_CA?.replace(/\\n/g, "\n");
+if (process.env.DB_SSL === "true" && !dbSslCa) {
+  throw new Error("DB_SSL_CA is required when DB_SSL=true. Add your database provider's CA certificate.");
+}
+
 if (!JWT_SECRET && require.main === module) {
   throw new Error("JWT_SECRET is missing. Add it to Server/.env.");
 }
@@ -36,6 +41,10 @@ app.use(cookieParser());
 
 const db = mysql.createPool({
   host: process.env.DB_HOST || "localhost",
+  port: Number(process.env.DB_PORT) || 3306,
+  ssl: process.env.DB_SSL === "true"
+    ? { ca: dbSslCa, rejectUnauthorized: true }
+    : undefined,
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME || "Habit_Tracker",
