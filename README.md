@@ -13,8 +13,10 @@ The Vite server proxies `/api` requests to `http://localhost:5000`, so login coo
 
 Run `npm start` from `Server`. Its `prestart` script builds `Client`, and Express serves the built client and API from the same origin. Direct page URLs such as `http://localhost:5000/today` are handled by the client router.
 
-For a Vercel frontend deployment, the root `vercel.json` builds `Client` when the Vercel project root is this repository. If the Vercel project root is set to `Client`, `Client/vercel.json` supplies the client-side route rewrites. Both configurations send app page URLs such as `/login` to the Vite entry page so React Router can render them.
+For a full Vercel deployment, set the Vercel project's Root Directory to the repository root. The root `vercel.json` builds the Vite client and installs the Express server dependencies; root `server.js` exports the API as a Vercel Express function. The route rewrites send app URLs such as `/login` to the Vite entry page so React Router can render them.
 
-The Vercel frontend configuration does not deploy the Express API in `Server`. For login, signup, and habit data to work in production, deploy the API separately and route the client's `/api` requests to it, or deploy the Express server with a host that supports this app's production server setup.
+Add `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and `JWT_SECRET` to the Vercel project's Environment Variables. `DB_HOST` must point to a MySQL server reachable from Vercel; `localhost` refers to the Vercel function itself, not your computer. `DB_CONNECTION_LIMIT` is optional and defaults to 5. Set `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, and `SMTP_FROM` there as well if signup email verification should work. Apply `Server/migrations/001_week_tracking.sql`, `Server/migrations/002_pending_signups.sql`, and the other required table schemas to that cloud database.
 
-The database must already contain the app's `users`, `habits`, `tomorrow_habits`, and `daily_logs` tables. Apply `Server/migrations/001_week_tracking.sql` once to add the daily habit snapshot and weekly notes tables.
+If the Vercel project's Root Directory is set to `Client`, only the static frontend is deployed; the Express API in `Server` will not be included.
+
+The database must already contain the app's `users`, `habits`, `tomorrow_habits`, and `daily_logs` tables. Apply `Server/migrations/001_week_tracking.sql` for daily habit snapshots and weekly notes, and `Server/migrations/002_pending_signups.sql` for durable email verification codes.

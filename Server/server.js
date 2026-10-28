@@ -8,7 +8,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const mysql = require("mysql2");
 const { rateLimit } = require("express-rate-limit");
-const { sendOtp, verifyOtp, getResendDelay } = require("./Email");
+const { sendOtp, verifyOtp } = require("./Email");
 const createTodayRouter = require("./Today");
 const createTomorrowRouter = require("./Tomorrow");
 const createWeekRouter = require("./weekTracker");
@@ -25,7 +25,7 @@ const authCookieOptions = {
   path: "/",
 };
 
-if (!JWT_SECRET) {
+if (!JWT_SECRET && require.main === module) {
   throw new Error("JWT_SECRET is missing. Add it to Server/.env.");
 }
 
@@ -34,14 +34,25 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || "http://localhost:5173", credentials: true }));
 app.use(cookieParser());
 
-const db = mysql.createConnection({
+const db = mysql.createPool({
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME || "Habit_Tracker",
+  waitForConnections: true,
+  connectionLimit: Math.max(1, Number(process.env.DB_CONNECTION_LIMIT) || 5),
+  queueLimit: 0,
 });
 
-const pendingSignups = new Map();
+app.use("/api", (req, res, next) => {
+  if (!JWT_SECRET) {
+    return res.status(503).json({
+      success: false,
+      message: "The API server is missing its JWT_SECRET configuration.",
+    });
+  }
+  return next();
+});
 
 const signupLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -109,8 +120,16 @@ function isDuplicateEmailError(error) {
   return error && (error.code === "ER_DUP_ENTRY" || error.errno === 1062);
 }
 
+async function clearPendingSignup(email) {
+  try {
+    await databaseQuery("DELETE FROM pending_signups WHERE email = ?", [email]);
+  } catch (error) {
+    console.error("Failed to clear pending signup:", error.message);
+  }
+}
+
 // Signup stays pending until the email code is verified. Only the password hash
-// is kept in memory, and the existing users table schema remains unchanged.
+// is stored in the pending-signup table; the existing users table schema is unchanged.
 app.post("/api/signup", signupLimiter, async (req, res) => {
   const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
   const email = normalizeEmail(req.body?.email);
@@ -155,7 +174,7 @@ app.post("/api/signup", signupLimiter, async (req, res) => {
 
   let sendResult;
   try {
-    sendResult = await sendOtp(email);
+    sendResult = await sendOtp(email, { name, passwordHash }, databaseQuery);
   } catch (error) {
     console.error("Sending verification email failed:", error.message);
     return res.status(502).json({
@@ -165,21 +184,12 @@ app.post("/api/signup", signupLimiter, async (req, res) => {
   }
 
   if (!sendResult.sent) {
-    if (pendingSignups.has(email)) {
-      return res.json({
-        success: true,
-        message: "A verification code was already sent. Check your email to finish creating your account.",
-      });
-    }
-
-    return res.status(429).json({
-      success: false,
-      message: `A code was sent recently. Try again in ${sendResult.retryAfterSeconds} seconds.`,
-      retryAfterSeconds: sendResult.retryAfterSeconds,
+    return res.json({
+      success: true,
+      message: "A verification code was already sent. Check your email to finish creating your account.",
     });
   }
 
-  pendingSignups.set(email, { name, passwordHash });
   return res.status(200).json({
     success: true,
     message: "Verification code sent. Check your email to finish creating your account.",
@@ -193,24 +203,37 @@ app.post("/api/resend-otp", resendOtpLimiter, async (req, res) => {
     return res.status(400).json({ success: false, message: "Enter a valid email address." });
   }
 
-  if (!pendingSignups.has(email)) {
+  let pendingSignups;
+  try {
+    pendingSignups = await databaseQuery(
+      "SELECT name, password_hash FROM pending_signups WHERE email = ? LIMIT 1",
+      [email],
+    );
+  } catch (error) {
+    console.error("Failed to load pending signup:", error.message);
+    return res.status(500).json({ success: false, message: "Could not resend the code right now." });
+  }
+
+  if (pendingSignups.length === 0) {
     return res.status(404).json({
       success: false,
       message: "No pending signup was found. Please create your account again.",
     });
   }
 
-  const retryAfterSeconds = getResendDelay(email);
-  if (retryAfterSeconds > 0) {
-    return res.status(429).json({
-      success: false,
-      message: `Please wait ${retryAfterSeconds} seconds before requesting another code.`,
-      retryAfterSeconds,
-    });
-  }
-
   try {
-    await sendOtp(email);
+    const sendResult = await sendOtp(
+      email,
+      { name: pendingSignups[0].name, passwordHash: pendingSignups[0].password_hash },
+      databaseQuery,
+    );
+    if (!sendResult.sent) {
+      return res.status(429).json({
+        success: false,
+        message: `Please wait ${sendResult.retryAfterSeconds} seconds before requesting another code.`,
+        retryAfterSeconds: sendResult.retryAfterSeconds,
+      });
+    }
     return res.json({ success: true, message: "A new verification code was sent." });
   } catch (error) {
     console.error("Resending verification email failed:", error.message);
@@ -229,27 +252,45 @@ app.post("/api/verify-otp", verifyOtpLimiter, async (req, res) => {
     return res.status(400).json({ success: false, message: "Enter the email address and 6-digit code." });
   }
 
-  const pendingSignup = pendingSignups.get(email);
-  if (!pendingSignup) {
+  let pendingSignups;
+  try {
+    pendingSignups = await databaseQuery(
+      "SELECT name, password_hash FROM pending_signups WHERE email = ? LIMIT 1",
+      [email],
+    );
+  } catch (error) {
+    console.error("Failed to load pending signup:", error.message);
+    return res.status(500).json({ success: false, message: "Could not verify the code right now." });
+  }
+
+  if (pendingSignups.length === 0) {
     return res.status(400).json({
       success: false,
       message: "No pending signup was found. Request a new code by signing up again.",
     });
   }
 
-  if (!verifyOtp(email, otp)) {
+  let codeIsValid;
+  try {
+    codeIsValid = await verifyOtp(email, otp, databaseQuery);
+  } catch (error) {
+    console.error("Failed to verify signup code:", error.message);
+    return res.status(500).json({ success: false, message: "Could not verify the code right now." });
+  }
+  if (!codeIsValid) {
     return res.status(400).json({ success: false, message: "That code is incorrect or expired." });
   }
 
+  const pendingSignup = pendingSignups[0];
   try {
     await databaseQuery(
       "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [pendingSignup.name, email, pendingSignup.passwordHash],
+      [pendingSignup.name, email, pendingSignup.password_hash],
     );
-    pendingSignups.delete(email);
+    await clearPendingSignup(email);
     return res.json({ success: true, message: "Email verified and account created successfully." });
   } catch (error) {
-    pendingSignups.delete(email);
+    await clearPendingSignup(email);
     if (isDuplicateEmailError(error)) {
       return res.status(409).json({ success: false, message: "An account with this email already exists." });
     }
@@ -315,16 +356,37 @@ app.get(/.*/, (req, res) => {
   });
 });
 
-db.connect((error) => {
-  if (error) {
-    console.error("Database connection failed:", error.message);
-    db.destroy();
-    process.exitCode = 1;
-    return;
+app.use((error, req, res, next) => {
+  if (res.headersSent) return next(error);
+
+  if (req.path.startsWith("/api/")) {
+    const status = Number.isInteger(error.status) && error.status >= 400 ? error.status : 500;
+    const message = error.type === "entity.parse.failed"
+      ? "Request body must be valid JSON."
+      : "The API request could not be completed.";
+
+    if (status >= 500) console.error("Unhandled API request error:", error.message);
+    return res.status(status).json({ success: false, message });
   }
 
-  console.log("Connected to the Habit Tracker database.");
-  app.listen(PORT, () => {
-    console.log(`Habit Tracker running at http://localhost:${PORT}`);
-  });
+  return next(error);
 });
+
+if (require.main === module) {
+  db.getConnection((error, connection) => {
+    if (error) {
+      console.error("Database connection failed:", error.message);
+      db.end();
+      process.exitCode = 1;
+      return;
+    }
+
+    connection.release();
+    console.log("Connected to the Habit Tracker database.");
+    app.listen(PORT, () => {
+      console.log(`Habit Tracker running at http://localhost:${PORT}`);
+    });
+  });
+}
+
+module.exports = app;

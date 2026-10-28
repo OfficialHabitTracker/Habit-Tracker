@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm ci --prefix Client",
+  "framework": "express",
+  "installCommand": "npm ci --prefix Client && npm ci --prefix Server",
   "buildCommand": "npm run build --prefix Client",
   "outputDirectory": "Client/dist",
   "rewrites": [
