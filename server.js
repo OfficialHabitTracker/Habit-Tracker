@@ -1,2 +1,7 @@
 // Vercel uses this root entry point and runs the exported Express app as a function.
-module.exports = require("./Server/server.js");
+const express = require("./Server/node_modules/express");
+const app = express();
+
+app.use(require("./Server/server.js"));
+
+module.exports = app;

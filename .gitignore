@@ -9,3 +9,4 @@
 # Dependencies and generated client output
 node_modules/
 dist/
+/public/

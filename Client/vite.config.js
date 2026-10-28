@@ -8,6 +8,10 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  build: {
+    outDir: "../public",
+    emptyOutDir: true,
+  },
   server: {
     proxy: {
       "/api": {

@@ -343,7 +343,7 @@ app.use("/api", (req, res) => {
   return res.status(404).json({ success: false, message: "API route not found." });
 });
 
-const clientBuildPath = path.join(__dirname, "..", "Client", "dist");
+const clientBuildPath = path.join(__dirname, "..", "public");
 app.use(express.static(clientBuildPath));
 app.get(/.*/, (req, res) => {
   const indexPath = path.join(clientBuildPath, "index.html");
