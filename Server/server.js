@@ -9,6 +9,7 @@ const jwt = require("jsonwebtoken");
 const mysql = require("mysql2");
 const { rateLimit } = require("express-rate-limit");
 const { sendOtp, verifyOtp } = require("./Email");
+const { ensureDatabaseReady } = require("./migrate");
 const createTodayRouter = require("./Today");
 const createTomorrowRouter = require("./Tomorrow");
 const createWeekRouter = require("./weekTracker");
@@ -61,6 +62,19 @@ app.use("/api", (req, res, next) => {
     });
   }
   return next();
+});
+
+app.use("/api", async (req, res, next) => {
+  try {
+    await ensureDatabaseReady();
+    return next();
+  } catch (error) {
+    console.error("Database setup failed:", error.message);
+    return res.status(503).json({
+      success: false,
+      message: "Database setup could not complete. Check the database connection and permissions.",
+    });
+  }
 });
 
 const signupLimiter = rateLimit({
@@ -382,20 +396,18 @@ app.use((error, req, res, next) => {
 });
 
 if (require.main === module) {
-  db.getConnection((error, connection) => {
-    if (error) {
-      console.error("Database connection failed:", error.message);
+  ensureDatabaseReady()
+    .then(() => {
+      console.log("Connected to the Habit Tracker database.");
+      app.listen(PORT, () => {
+        console.log(`Habit Tracker running at http://localhost:${PORT}`);
+      });
+    })
+    .catch((error) => {
+      console.error("Database setup failed:", error.message);
       db.end();
       process.exitCode = 1;
-      return;
-    }
-
-    connection.release();
-    console.log("Connected to the Habit Tracker database.");
-    app.listen(PORT, () => {
-      console.log(`Habit Tracker running at http://localhost:${PORT}`);
     });
-  });
 }
 
 module.exports = app;
