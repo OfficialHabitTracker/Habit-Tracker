@@ -19,10 +19,12 @@ const requireLogin = require("./auth");
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 const JWT_SECRET = process.env.JWT_SECRET;
+const isProduction = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
+const cookieSameSite = process.env.COOKIE_SAME_SITE || (isProduction ? "none" : "lax");
 const authCookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
+  secure: isProduction || cookieSameSite === "none",
+  sameSite: cookieSameSite,
   path: "/",
 };
 
@@ -37,7 +39,18 @@ if (!JWT_SECRET && require.main === module) {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || "http://localhost:5173", credentials: true }));
+const allowedClientOrigins = new Set(
+  (process.env.CLIENT_ORIGIN || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+);
+app.use(cors({
+  origin(origin, callback) {
+    return callback(null, !origin || allowedClientOrigins.has(origin));
+  },
+  credentials: true,
+}));
 app.use(cookieParser());
 
 const db = mysql.createPool({
@@ -366,7 +379,7 @@ app.use("/api", (req, res) => {
   return res.status(404).json({ success: false, message: "API route not found." });
 });
 
-const clientBuildPath = path.join(__dirname, "..", "public");
+const clientBuildPath = path.join(__dirname, "..", "Client", "dist");
 app.use(express.static(clientBuildPath));
 app.get(/.*/, (req, res) => {
   const indexPath = path.join(clientBuildPath, "index.html");

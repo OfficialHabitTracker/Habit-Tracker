@@ -1,6 +1,8 @@
+const apiBaseUrl = (import.meta.env.VITE_API_URL || "").trim().replace(/\/+$/, "");
+
 export function apiFetch(path, options = {}) {
   const apiPath = path.startsWith("/") ? path : `/${path}`;
-  return fetch(`/api${apiPath}`, {
+  return fetch(`${apiBaseUrl}/api${apiPath}`, {
     ...options,
     credentials: "include",
   }).then((response) => {
