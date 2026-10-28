@@ -99,9 +99,13 @@ app.use("/api", async (req, res, next) => {
     return next();
   } catch (error) {
     console.error("Database setup failed:", error.message);
+    const errorCode = typeof error?.code === "string" && /^[A-Z0-9_]{1,64}$/.test(error.code)
+      ? error.code
+      : "DB_SETUP_FAILED";
     return res.status(503).json({
       success: false,
-      message: "Database setup could not complete. Check the database connection and permissions.",
+      code: errorCode,
+      message: `Database setup failed (${errorCode}). Check the Server Vercel database settings and Aiven access rules.`,
     });
   }
 });
