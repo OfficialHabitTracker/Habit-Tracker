@@ -184,6 +184,38 @@ async function clearPendingSignup(email) {
   }
 }
 
+function getEmailFailure(error) {
+  const code = error?.code;
+  if (code === "EMAIL_CONFIG_MISSING") {
+    return {
+      code,
+      message: "Email is not configured for the Server deployment. Add SMTP_PASS and SMTP_USER (or SMTP_FROM) to its Vercel Environment Variables, then redeploy.",
+    };
+  }
+  if (code === "EMAIL_CONFIG_INVALID") {
+    return {
+      code,
+      message: "The Server email settings are invalid. Check SMTP_HOST, SMTP_PORT, and SMTP_SECURE in Vercel.",
+    };
+  }
+  if (code === "EAUTH" || error?.responseCode === 535) {
+    return {
+      code: "EMAIL_AUTH_FAILED",
+      message: "The email provider rejected the SMTP login. Check SMTP_USER and SMTP_PASS in the Server Vercel project.",
+    };
+  }
+  if (["ECONNECTION", "ESOCKET", "ETIMEDOUT", "EDNS"].includes(code)) {
+    return {
+      code: "EMAIL_CONNECTION_FAILED",
+      message: "The Server could not connect to the SMTP provider. Check SMTP_HOST, SMTP_PORT, and SMTP_SECURE in Vercel.",
+    };
+  }
+  return {
+    code: "EMAIL_DELIVERY_FAILED",
+    message: "We couldn't send the verification email. Check the Server Vercel function logs for the mail-provider error.",
+  };
+}
+
 // Signup stays pending until the email code is verified. Only the password hash
 // is stored in the pending-signup table; the existing users table schema is unchanged.
 app.post("/api/signup", signupLimiter, async (req, res) => {
@@ -232,10 +264,12 @@ app.post("/api/signup", signupLimiter, async (req, res) => {
   try {
     sendResult = await sendOtp(email, { name, passwordHash }, databaseQuery);
   } catch (error) {
-    console.error("Sending verification email failed:", error.message);
+    const failure = getEmailFailure(error);
+    console.error("Sending verification email failed:", failure.code, error.message);
     return res.status(502).json({
       success: false,
-      message: "We couldn't send the verification email. Check the server email settings and try again.",
+      code: failure.code,
+      message: failure.message,
     });
   }
 
@@ -292,10 +326,12 @@ app.post("/api/resend-otp", resendOtpLimiter, async (req, res) => {
     }
     return res.json({ success: true, message: "A new verification code was sent." });
   } catch (error) {
-    console.error("Resending verification email failed:", error.message);
+    const failure = getEmailFailure(error);
+    console.error("Resending verification email failed:", failure.code, error.message);
     return res.status(502).json({
       success: false,
-      message: "We couldn't send the email. Check the server email settings and try again.",
+      code: failure.code,
+      message: failure.message,
     });
   }
 });
