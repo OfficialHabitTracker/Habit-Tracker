@@ -1,0 +1,421 @@
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #6855e8;
+  outline-offset: 2px;
+}
+
+.auth-page,
+.otp-page {
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+@media (max-width: 600px) {
+  .habit-header {
+    width: calc(100% - 24px);
+    max-width: 578px;
+    padding: 10px 0;
+  }
+
+  .habit-header-top {
+    gap: 12px;
+  }
+
+  .habit-brand h1 {
+    font-size: 18px;
+  }
+
+  .habit-brand p {
+    font-size: 12px;
+  }
+
+  .save-status {
+    flex-shrink: 0;
+    font-size: 11px;
+  }
+
+  .habit-nav-link {
+    min-height: 44px;
+    padding-inline: 2px;
+    font-size: 11px;
+  }
+
+  .habit-nav-link svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .tracker-wrapper {
+    min-height: 100svh;
+    padding: 12px 12px 24px;
+  }
+
+  .tracker-container {
+    gap: 12px;
+  }
+
+  .habit-card,
+  .habit-summary-card {
+    padding: 12px;
+  }
+
+  .habit-top-row {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .habit-info {
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  .habit-title,
+  .detail-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .habit-controls {
+    flex: 0 0 auto;
+    gap: 5px;
+  }
+
+  .btn-counter,
+  .btn-delete {
+    min-width: 38px;
+    min-height: 38px;
+  }
+
+  .btn-counter {
+    font-size: 17px;
+  }
+
+  .btn-delete svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .status-selector {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .status-btn {
+    min-height: 42px;
+    padding: 8px 4px;
+    font-size: 12px;
+  }
+
+  .type-selector {
+    width: auto;
+    max-width: 300px;
+    flex: 1 1 auto;
+  }
+
+  .type-btn,
+  .btn-submit,
+  .btn-cancel,
+  .btn-reset-link {
+    min-height: 40px;
+  }
+
+  .add-controls {
+    gap: 12px;
+  }
+
+  .habit-summary-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .habit-stat {
+    min-width: 0;
+    margin-left: auto;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .detail-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .detail-status {
+    margin-left: auto;
+  }
+
+  .week-range-text {
+    padding-inline: 4px;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .nav-arrow-btn {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    font-size: 23px;
+  }
+
+  .chart-card {
+    padding-inline: 10px;
+  }
+
+  .chart-bar-area {
+    min-height: 116px;
+  }
+
+  .notes-textarea {
+    min-height: 96px;
+    height: 96px;
+    font-size: 14px;
+  }
+
+  .history-card {
+    min-height: 52px;
+    padding: 12px;
+  }
+
+  .history-details {
+    padding: 12px;
+  }
+
+  .auth-page {
+    padding: 18px 14px;
+  }
+
+  .auth-card {
+    max-width: 450px;
+    margin-top: 28px;
+    padding: 26px 20px;
+  }
+
+  .form-group input,
+  .input-text,
+  .notes-textarea {
+    font-size: 16px;
+  }
+
+  .otp-page {
+    padding: 16px;
+  }
+
+  .otp-card {
+    max-width: 440px;
+    padding: 30px 20px;
+  }
+}
+
+@media (min-width: 700px) {
+  .tracker-wrapper .tracker-container,
+  .habit-header {
+    max-width: 760px;
+  }
+}
+
+@media (min-width: 1000px) {
+  .tracker-wrapper .tracker-container,
+  .habit-header {
+    max-width: 960px;
+  }
+
+  .habits-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .habit-card {
+    height: 100%;
+  }
+}
+
+@media (min-width: 1600px) {
+  .navbar,
+  .hero {
+    max-width: 1600px;
+  }
+
+  .hero {
+    gap: clamp(70px, 6vw, 120px);
+    padding-top: clamp(80px, 7vh, 130px);
+    padding-bottom: clamp(90px, 8vh, 145px);
+  }
+
+  .hero h1 {
+    font-size: clamp(78px, 5vw, 104px);
+  }
+
+  .hero-description {
+    font-size: 19px;
+  }
+
+  .preview-card {
+    max-width: 560px;
+    padding: 38px;
+  }
+
+  .features {
+    padding-inline: max(48px, calc((100% - 1500px) / 2));
+    gap: 42px;
+  }
+
+  .footer {
+    padding-inline: max(48px, calc((100% - 1500px) / 2));
+  }
+
+  .tracker-wrapper .tracker-container,
+  .habit-header {
+    max-width: 1240px;
+  }
+
+  .tracker-wrapper {
+    padding: 38px 40px 56px;
+  }
+
+  .tracker-container {
+    gap: 16px;
+  }
+
+  .habit-header {
+    padding-block: 22px;
+  }
+
+  .habit-brand h1 {
+    font-size: 25px;
+  }
+
+  .habit-nav-link {
+    min-height: 50px;
+    font-size: 15px;
+  }
+
+  .card {
+    padding: 18px 22px;
+    border-radius: 12px;
+  }
+
+  .habit-title {
+    font-size: 17px;
+  }
+
+  .score-label,
+  .habit-stat,
+  .notes-label,
+  .notes-textarea,
+  .history-date,
+  .detail-name {
+    font-size: 15px;
+  }
+
+  .status-btn,
+  .type-btn,
+  .btn-open-add,
+  .btn-submit {
+    min-height: 48px;
+    font-size: 15px;
+  }
+
+  .auth-card {
+    max-width: 560px;
+    margin-top: clamp(50px, 7vh, 120px);
+    padding: 48px;
+  }
+
+  .auth-card h1 {
+    font-size: 40px;
+  }
+
+  .form-group input {
+    min-height: 58px;
+    font-size: 16px;
+  }
+
+  .auth-submit {
+    min-height: 60px;
+    font-size: 16px;
+  }
+
+  .otp-card {
+    max-width: 520px;
+    padding: 48px 42px;
+  }
+
+  .otp-card h1 {
+    font-size: 34px;
+  }
+}
+
+@media (min-width: 2600px) {
+  .navbar,
+  .hero {
+    max-width: 1840px;
+  }
+
+  .tracker-wrapper .tracker-container,
+  .habit-header {
+    max-width: 1480px;
+  }
+
+  .hero h1 {
+    font-size: clamp(104px, 4.7vw, 132px);
+  }
+
+  .habit-title {
+    font-size: 19px;
+  }
+
+  .score-label,
+  .habit-stat,
+  .notes-label,
+  .notes-textarea,
+  .history-date,
+  .detail-name {
+    font-size: 17px;
+  }
+}
+
+@media (pointer: coarse) {
+  button,
+  a {
+    touch-action: manipulation;
+  }
+
+  .habit-nav-link,
+  .status-btn,
+  .type-btn,
+  .btn-counter,
+  .btn-delete,
+  .nav-arrow-btn,
+  .password-toggle,
+  .logout-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,305 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #040926;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-size: 13px;
+}
+
+.tracker-wrapper {
+  min-height: 100vh;
+  background-color: #040926;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px;
+}
+
+.tracker-container {
+  width: 100%;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Informational Banner */
+.info-banner {
+  background-color: #12153b;
+  border: 1px solid #282f6e;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #9aa8cb;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.4;
+}
+
+.info-banner strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.banner-arrow {
+  color: #7b88d1;
+  font-size: 14px;
+}
+
+/* Card Base */
+.card {
+  background-color: #121824;
+  border: 1px solid #1e283b;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+/* Habits List */
+.habits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.habit-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.habit-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.habit-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge.good {
+  background-color: #044b34;
+  color: #00e699;
+}
+
+.badge.bad {
+  background-color: #4d1c24;
+  color: #ff4d6d;
+}
+
+.habit-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.habit-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #718096;
+  font-size: 11px;
+}
+
+.btn-counter {
+  background: none;
+  border: none;
+  color: #718096;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 2px;
+  user-select: none;
+  line-height: 1;
+}
+
+.btn-counter:hover {
+  color: #ffffff;
+}
+
+.counter-val {
+  min-width: 8px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.btn-delete {
+  background: none;
+  border: none;
+  color: #4a5568;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  padding: 2px;
+}
+
+.btn-delete svg {
+  width: 12px;
+  height: 12px;
+}
+
+.btn-delete:hover {
+  color: #ff4d6d;
+}
+
+/* Add Form Card */
+.add-card {
+  padding: 10px 14px;
+  background-color: #121824;
+}
+
+.btn-open-add {
+  width: 100%;
+  padding: 8px;
+  background-color: transparent;
+  border: 1px dashed #2a374e;
+  border-radius: 6px;
+  color: #8a99ad;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-open-add:hover {
+  border-color: #5c67f2;
+  color: #ffffff;
+}
+
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-text {
+  width: 100%;
+  background-color: #1a2233;
+  border: 1px solid #2a374e;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #ffffff;
+  font-size: 13px;
+  outline: none;
+}
+
+.input-text:focus {
+  border-color: #5c67f2;
+}
+
+.add-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.type-selector {
+  display: flex;
+  background-color: #1a2233;
+  border-radius: 6px;
+  padding: 3px;
+  gap: 3px;
+  width: 60%;
+}
+
+.type-btn {
+  flex: 1;
+  padding: 6px 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #8a99ad;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.type-btn.active-good {
+  background-color: #00b074;
+  color: #ffffff;
+}
+
+.type-btn.active-bad {
+  background-color: #ff2a6d;
+  color: #ffffff;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-submit {
+  flex: 1;
+  padding: 8px;
+  background-color: #5c67f2;
+  border: none;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-submit:hover {
+  background-color: #4b55e0;
+}
+
+.btn-cancel {
+  background: none;
+  border: none;
+  color: #8a99ad;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0 6px;
+}
+
+.btn-cancel:hover {
+  color: #ffffff;
+}
+
+/* Reset Link */
+.reset-container {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 2px;
+}
+
+.btn-reset-link {
+  background: none;
+  border: none;
+  color: #718096;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.btn-reset-link:hover {
+  color: #a0aec0;
+}
