@@ -56,14 +56,43 @@ async function Sendemail(userEmail, message, subject) {
     },
   });
 
+  const text = message
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|h[1-6])\s*>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .trim();
+
   const info = await transporter.sendMail({
     from: settings.from,
     to: userEmail,
     subject,
     html: message,
+    text,
   });
 
-  console.log("Verification email sent:", info.messageId);
+  const accepted = (info.accepted || []).some((recipient) => {
+    const address = typeof recipient === "string" ? recipient : recipient?.address;
+    return typeof address === "string" && address.toLowerCase() === userEmail.toLowerCase();
+  });
+
+  if (!accepted) {
+    const error = new Error("The SMTP server did not accept the email recipient.");
+    error.code = "EENVELOPE";
+    throw error;
+  }
+
+  // SMTP acceptance confirms handoff to the provider, not final inbox delivery.
+  console.log("Transactional email accepted by SMTP server:", {
+    messageId: info.messageId,
+    serverMessageId: info.serverMessageId,
+    response: info.response,
+    acceptedCount: info.accepted.length,
+    rejectedCount: info.rejected?.length || 0,
+  });
 }
 
 module.exports = Sendemail;
