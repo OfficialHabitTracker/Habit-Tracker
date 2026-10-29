@@ -24,7 +24,7 @@ const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 const JWT_SECRET = process.env.JWT_SECRET;
 const isProduction = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
-const cookieSameSite = process.env.COOKIE_SAME_SITE || (isProduction ? "none" : "lax");
+const cookieSameSite = process.env.COOKIE_SAME_SITE || "lax";
 const sessionDurationSeconds = 30 * 24 * 60 * 60;
 const sessionDurationMilliseconds = sessionDurationSeconds * 1000;
 const defaultClientOrigin = isProduction

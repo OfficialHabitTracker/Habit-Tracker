@@ -11,8 +11,11 @@ function normalizeApiOrigin(value) {
   }
 }
 
-const apiBaseUrl = normalizeApiOrigin(import.meta.env.VITE_API_URL)
-  || (import.meta.env.PROD ? "https://habit-tracker-server-roan.vercel.app" : "");
+// In production, use the app's own origin so auth cookies remain first-party.
+// Vercel proxies /api to the Server project; Vite's dev proxy handles local requests.
+const apiBaseUrl = import.meta.env.PROD
+  ? ""
+  : normalizeApiOrigin(import.meta.env.VITE_API_URL);
 
 export function apiFetch(path, options = {}) {
   const apiPath = path.startsWith("/") ? path : `/${path}`;
