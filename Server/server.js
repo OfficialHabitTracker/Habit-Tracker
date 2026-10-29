@@ -21,6 +21,8 @@ const PORT = Number(process.env.PORT) || 5000;
 const JWT_SECRET = process.env.JWT_SECRET;
 const isProduction = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
 const cookieSameSite = process.env.COOKIE_SAME_SITE || (isProduction ? "none" : "lax");
+const sessionDurationSeconds = 30 * 24 * 60 * 60;
+const sessionDurationMilliseconds = sessionDurationSeconds * 1000;
 const defaultClientOrigin = isProduction
   ? "https://habit-tracker-seven-ebon.vercel.app"
   : "http://localhost:5173";
@@ -410,13 +412,13 @@ app.post("/api/login", async (req, res) => {
     }
 
     const token = jwt.sign({ id: users[0].id, email: users[0].email }, JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: sessionDurationSeconds,
     });
 
     return res
       .cookie("token", token, {
         ...authCookieOptions,
-        maxAge: 60 * 60 * 1000,
+        maxAge: sessionDurationMilliseconds,
       })
       .json({ success: true, message: "Logged in successfully." });
   } catch (error) {
