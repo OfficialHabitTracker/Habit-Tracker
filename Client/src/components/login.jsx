@@ -74,7 +74,6 @@ function Login() {
             {location.state.message}
           </p>
         )}
-
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="login-email">Email address</label>
@@ -114,6 +113,10 @@ function Login() {
               </button>
             </div>
           </div>
+
+          <Link to="/forgot-password" className="forgot-password-link">
+            Forgot password?
+          </Link>
 
           {error && (
             <p role="alert" style={{ color: "#b42318", margin: "0 0 15px" }}>

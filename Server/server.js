@@ -9,6 +9,10 @@ const jwt = require("jsonwebtoken");
 const mysql = require("mysql2");
 const { rateLimit } = require("express-rate-limit");
 const { sendOtp, verifyOtp } = require("./Email");
+const {
+  sendPasswordResetCode,
+  passwordResetCodeMatches,
+} = require("./PasswordResetEmail");
 const { ensureDatabaseReady } = require("./migrate");
 const createTodayRouter = require("./Today");
 const createTomorrowRouter = require("./Tomorrow");
@@ -134,6 +138,22 @@ const resendOtpLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: "Too many code requests. Please try again later." },
+});
+
+const passwordResetRequestLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: "Too many reset requests. Please try again later." },
+});
+
+const passwordResetSubmitLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: "Too many code attempts. Please request a new code later." },
 });
 
 function normalizeEmail(value) {
@@ -424,6 +444,153 @@ app.post("/api/login", async (req, res) => {
   } catch (error) {
     console.error("Login failed:", error.message);
     return res.status(500).json({ success: false, message: "Unable to log in right now." });
+  }
+});
+
+const passwordResetRequestMessage =
+  "If an account exists for that email, a password reset code will be sent shortly.";
+
+app.post("/api/forgot-password", passwordResetRequestLimiter, async (req, res) => {
+  const email = normalizeEmail(req.body?.email);
+
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ success: false, message: "Enter a valid email address." });
+  }
+
+  try {
+    const users = await databaseQuery(
+      "SELECT id FROM users WHERE LOWER(email) = ? LIMIT 1",
+      [email],
+    );
+    if (users.length > 0) {
+      await sendPasswordResetCode(email, databaseQuery);
+    }
+  } catch (error) {
+    // Keep the response the same whether the email exists or delivery fails.
+    console.error("Password reset code request failed:", error.code || "UNKNOWN", error.message);
+  }
+
+  return res.json({ success: true, message: passwordResetRequestMessage });
+});
+
+function queryOnConnection(connection, sql, values = []) {
+  return new Promise((resolve, reject) => {
+    connection.query(sql, values, (error, results) => {
+      if (error) reject(error);
+      else resolve(results);
+    });
+  });
+}
+
+async function resetPasswordWithCode(email, otp, passwordHash) {
+  const connection = await new Promise((resolve, reject) => {
+    db.getConnection((error, acquiredConnection) => {
+      if (error) reject(error);
+      else resolve(acquiredConnection);
+    });
+  });
+
+  try {
+    await queryOnConnection(connection, "START TRANSACTION");
+    const codes = await queryOnConnection(
+      connection,
+      `SELECT code_hash, code_expires_at_ms, code_attempts
+       FROM password_reset_codes WHERE email = ? LIMIT 1 FOR UPDATE`,
+      [email],
+    );
+
+    if (codes.length === 0) {
+      await queryOnConnection(connection, "COMMIT");
+      return false;
+    }
+
+    const resetCode = codes[0];
+    const attempts = Number(resetCode.code_attempts);
+    const expiresAt = Number(resetCode.code_expires_at_ms);
+    if (Date.now() >= expiresAt || attempts >= 5) {
+      await queryOnConnection(
+        connection,
+        "DELETE FROM password_reset_codes WHERE email = ?",
+        [email],
+      );
+      await queryOnConnection(connection, "COMMIT");
+      return false;
+    }
+
+    const matches = passwordResetCodeMatches(email, otp, resetCode.code_hash);
+    if (!matches) {
+      if (attempts + 1 >= 5) {
+        await queryOnConnection(
+          connection,
+          "DELETE FROM password_reset_codes WHERE email = ?",
+          [email],
+        );
+      } else {
+        await queryOnConnection(
+          connection,
+          "UPDATE password_reset_codes SET code_attempts = code_attempts + 1 WHERE email = ?",
+          [email],
+        );
+      }
+      await queryOnConnection(connection, "COMMIT");
+      return false;
+    }
+
+    const updateResult = await queryOnConnection(
+      connection,
+      "UPDATE users SET password = ? WHERE LOWER(email) = ?",
+      [passwordHash, email],
+    );
+    if (updateResult.affectedRows !== 1) {
+      throw new Error("The account for this password reset no longer exists.");
+    }
+    await queryOnConnection(
+      connection,
+      "DELETE FROM password_reset_codes WHERE email = ?",
+      [email],
+    );
+    await queryOnConnection(connection, "COMMIT");
+    return true;
+  } catch (error) {
+    try {
+      await queryOnConnection(connection, "ROLLBACK");
+    } catch (rollbackError) {
+      console.error("Password reset transaction rollback failed:", rollbackError.message);
+    }
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+app.post("/api/reset-password", passwordResetSubmitLimiter, async (req, res) => {
+  const email = normalizeEmail(req.body?.email);
+  const otp = typeof req.body?.otp === "string" ? req.body.otp.trim() : "";
+  const password = typeof req.body?.password === "string" ? req.body.password : "";
+
+  if (!isValidEmail(email) || !/^\d{6}$/.test(otp)) {
+    return res.status(400).json({ success: false, message: "Enter a valid email address and 6-digit code." });
+  }
+  if (password.length < 8 || Buffer.byteLength(password, "utf8") > 72) {
+    return res.status(400).json({
+      success: false,
+      message: "Password must be at least 8 characters and no more than 72 bytes.",
+    });
+  }
+
+  try {
+    const passwordHash = await bcrypt.hash(password, 10);
+    const changed = await resetPasswordWithCode(email, otp, passwordHash);
+    if (!changed) {
+      return res.status(400).json({
+        success: false,
+        message: "That code is incorrect or expired. Request a new reset code and try again.",
+      });
+    }
+    return res.json({ success: true, message: "Your password has been reset. You can now log in." });
+  } catch (error) {
+    console.error("Password reset failed:", error.message);
+    return res.status(500).json({ success: false, message: "Could not reset your password right now." });
   }
 });
 

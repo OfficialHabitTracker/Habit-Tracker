@@ -231,6 +231,39 @@
   text-underline-offset: 3px;
 }
 
+.forgot-password-link {
+  align-self: flex-end;
+  margin-top: -10px;
+  color: var(--auth-black);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.forgot-password-link:hover {
+  color: #626262;
+}
+
+.auth-inline-link {
+  display: block;
+  margin: 18px auto 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #626262;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.auth-inline-link:hover {
+  color: var(--auth-black);
+}
+
 .back-home {
   display: block;
   width: fit-content;

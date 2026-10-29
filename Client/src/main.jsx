@@ -5,6 +5,7 @@ import "./index.css";
 import App from "./App.jsx";
 import { createBrowserRouter, redirect } from "react-router-dom";
 import Login from "./components/login.jsx";
+import ForgotPassword from "./components/ForgotPassword.jsx";
 import Signup from "./components/signup.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Today from "./components/Today.jsx";
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
     path: "/login",
     loader: redirectSignedInUser,
     element: <Login />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
   },
   {
     path: "/signup",
