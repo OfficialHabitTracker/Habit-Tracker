@@ -5,7 +5,7 @@
 Habit Tracker is a web application designed to help you build daily routines, manage your habits, and monitor your progress over time.
 
 🌐 **[Visit Habit Tracker]
-https://habit-tracker-seven-ebon.vercel.app/
+habit-tracker-seven-ebon.vercel.app
 
 ## ✨ What You Can Do
 
