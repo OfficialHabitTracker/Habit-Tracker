@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import "../stylesheet/auth.css";
 import { apiFetch } from "../api";
+import ThemeToggle from "./ThemeToggle";
 
 function Signup() {
   const [name, setName] = useState("");
@@ -50,6 +51,7 @@ function Signup() {
         <Link to="/" className="auth-brand-name">
           habit tracker
         </Link>
+        <ThemeToggle />
       </div>
 
       <main className="auth-card signup-card">

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiFetch } from "../api";
 import "../stylesheet/auth.css";
+import ThemeToggle from "./ThemeToggle";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -85,6 +86,7 @@ function ForgotPassword() {
           <img src="./images/logo.png" alt="Habit Tracker Logo" />
         </Link>
         <Link to="/" className="auth-brand-name">habit tracker</Link>
+        <ThemeToggle />
       </div>
 
       <main className="auth-card">

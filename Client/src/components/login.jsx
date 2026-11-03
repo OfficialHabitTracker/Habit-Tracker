@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import "../stylesheet/auth.css";
 import { apiFetch } from "../api";
+import ThemeToggle from "./ThemeToggle";
 
 const PROTECTED_ROUTES = new Set(["/today", "/tomorrow", "/history", "/week"]);
 
@@ -59,6 +60,7 @@ function Login() {
         <Link to="/" className="auth-brand-name">
           habit tracker
         </Link>
+        <ThemeToggle />
       </div>
 
       <main className="auth-card">

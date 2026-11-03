@@ -9,6 +9,7 @@ import {
   Sprout,
 } from "lucide-react";
 import { apiFetch } from "../api";
+import ThemeToggle from "./ThemeToggle";
 import "../stylesheet/Navbar.css";
 
 const tabs = [
@@ -76,6 +77,7 @@ export default function Navbar() {
         </div>
 
         <div className="header-actions">
+          <ThemeToggle />
           <button
             type="button"
             className="logout-button"

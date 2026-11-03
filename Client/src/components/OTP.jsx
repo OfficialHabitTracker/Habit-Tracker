@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../stylesheet/VerifyOTP.css";
 import { apiFetch } from "../api";
+import ThemeToggle from "./ThemeToggle";
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState("");
@@ -93,6 +94,7 @@ const VerifyOTP = () => {
 
   return (
     <div className="otp-page">
+      <ThemeToggle className="theme-toggle--floating" />
       <div className="otp-card">
         <div className="otp-logo">H</div>
 

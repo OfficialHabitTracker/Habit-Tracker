@@ -1,0 +1,36 @@
+import { createContext, useContext, useLayoutEffect, useState } from "react";
+
+const ThemeContext = createContext(null);
+
+export function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState(() =>
+    document.documentElement.dataset.theme === "dark" ? "dark" : "light",
+  );
+
+  useLayoutEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", theme === "dark" ? "#111813" : "#f3f5ef");
+
+    try {
+      window.localStorage.setItem("habit-tracker-theme", theme);
+    } catch {
+      // The theme still works for this session when browser storage is unavailable.
+    }
+  }, [theme]);
+
+  return (
+    <ThemeContext.Provider
+      value={{ theme, toggleTheme: () => setTheme((current) => current === "dark" ? "light" : "dark") }}
+    >
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) throw new Error("useTheme must be used inside ThemeProvider");
+  return context;
+}

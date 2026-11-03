@@ -1,4 +1,5 @@
 import "../stylesheet/App.css";
+import ThemeToggle from "./ThemeToggle";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         </a>
 
         <div className="nav-actions">
+          <ThemeToggle />
           <a href="/login" className="login-link">
             Log in
           </a>
