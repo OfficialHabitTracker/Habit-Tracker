@@ -4,15 +4,29 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/images/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#111813" />
+    <meta name="theme-color" content="#ffd83d" />
     <meta name="description" content="Build a calmer, more consistent routine with up to eight thoughtful habits, daily check-ins, and a view of your progress." />
     <script>
+      const isDashboardPage = ["/today", "/tomorrow", "/history", "/week"].includes(
+        window.location.pathname,
+      );
+      const storageKey = isDashboardPage
+        ? "habit-tracker-dashboard-theme"
+        : "habit-tracker-public-theme";
+      const defaultTheme = isDashboardPage ? "dark" : "light";
       try {
-        const savedTheme = localStorage.getItem("habit-tracker-theme-v2");
-        document.documentElement.dataset.theme = savedTheme === "light" ? "light" : "dark";
+        const savedTheme = localStorage.getItem(storageKey);
+        document.documentElement.dataset.theme =
+          savedTheme === "light" || savedTheme === "dark" ? savedTheme : defaultTheme;
       } catch {
-        document.documentElement.dataset.theme = "dark";
+        document.documentElement.dataset.theme = defaultTheme;
       }
+      const activeTheme = document.documentElement.dataset.theme;
+      document.querySelector('meta[name="theme-color"]').content = activeTheme === "dark"
+        ? "#111813"
+        : defaultTheme === "light" && !isDashboardPage
+          ? "#ffd83d"
+          : "#f3f5ef";
     </script>
     <title>Habit Tracker</title>
   </head>

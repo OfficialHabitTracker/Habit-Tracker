@@ -15,8 +15,21 @@ import WeekTracker from "./components/Week.jsx";
 import VerifyOTP from "./components/OTP.jsx";
 import RequireAuth from "./components/RequireAuth.jsx";
 import { apiFetch } from "./api";
+import { ThemeProvider } from "./theme/ThemeContext.jsx";
 import "./stylesheet/responsive.css";
 import "./stylesheet/dashboard.css";
+
+const PublicTheme = ({ children }) => (
+  <ThemeProvider defaultTheme="light" storageKey="habit-tracker-public-theme">
+    {children}
+  </ThemeProvider>
+);
+
+const DashboardTheme = ({ children }) => (
+  <ThemeProvider defaultTheme="dark" storageKey="habit-tracker-dashboard-theme">
+    {children}
+  </ThemeProvider>
+);
 
 async function redirectSignedInUser({ request }) {
   try {
@@ -32,35 +45,35 @@ const router = createBrowserRouter([
   {
     path: "/",
     loader: redirectSignedInUser,
-    element: <Home />,
+    element: <PublicTheme><Home /></PublicTheme>,
   },
   {
     path: "/login",
     loader: redirectSignedInUser,
-    element: <Login />,
+    element: <PublicTheme><Login /></PublicTheme>,
   },
   {
     path: "/forgot-password",
-    element: <ForgotPassword />,
+    element: <PublicTheme><ForgotPassword /></PublicTheme>,
   },
   {
     path: "/signup",
     loader: redirectSignedInUser,
-    element: <Signup />,
+    element: <PublicTheme><Signup /></PublicTheme>,
   },
   {
     path: "/otp",
     loader: redirectSignedInUser,
-    element: <VerifyOTP />,
+    element: <PublicTheme><VerifyOTP /></PublicTheme>,
   },
   {
     path: "/today",
     element: (
       <RequireAuth>
-        <>
+        <DashboardTheme>
           <Navbar />
           <Today />
-        </>
+        </DashboardTheme>
       </RequireAuth>
     ),
   },
@@ -68,10 +81,10 @@ const router = createBrowserRouter([
     path: "/tomorrow",
     element: (
       <RequireAuth>
-        <>
+        <DashboardTheme>
           <Navbar />
           <Tomorrow />
-        </>
+        </DashboardTheme>
       </RequireAuth>
     ),
   },
@@ -79,10 +92,10 @@ const router = createBrowserRouter([
     path: "/history",
     element: (
       <RequireAuth>
-        <>
+        <DashboardTheme>
           <Navbar />
           <History />
-        </>
+        </DashboardTheme>
       </RequireAuth>
     ),
   },
@@ -90,10 +103,10 @@ const router = createBrowserRouter([
     path: "/week",
     element: (
       <RequireAuth>
-        <>
+        <DashboardTheme>
           <Navbar />
           <WeekTracker />
-        </>
+        </DashboardTheme>
       </RequireAuth>
     ),
   },

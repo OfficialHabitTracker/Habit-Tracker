@@ -2,23 +2,36 @@ import { createContext, useContext, useLayoutEffect, useState } from "react";
 
 const ThemeContext = createContext(null);
 
-export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() =>
-    document.documentElement.dataset.theme === "light" ? "light" : "dark",
-  );
+export function ThemeProvider({ children, defaultTheme = "dark", storageKey }) {
+  const [theme, setTheme] = useState(() => {
+    try {
+      const savedTheme = window.localStorage.getItem(storageKey);
+      if (savedTheme === "light" || savedTheme === "dark") return savedTheme;
+    } catch {
+      // Fall back to the page's default when browser storage is unavailable.
+    }
+    return defaultTheme;
+  });
 
   useLayoutEffect(() => {
     document.documentElement.dataset.theme = theme;
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", theme === "dark" ? "#111813" : "#f3f5ef");
+      ?.setAttribute(
+        "content",
+        theme === "dark"
+          ? "#111813"
+          : storageKey === "habit-tracker-public-theme"
+            ? "#ffd83d"
+            : "#f3f5ef",
+      );
 
     try {
-      window.localStorage.setItem("habit-tracker-theme-v2", theme);
+      window.localStorage.setItem(storageKey, theme);
     } catch {
       // The theme still works for this session when browser storage is unavailable.
     }
-  }, [theme]);
+  }, [theme, storageKey]);
 
   return (
     <ThemeContext.Provider
