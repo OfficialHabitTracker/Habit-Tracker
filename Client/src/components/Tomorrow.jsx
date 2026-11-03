@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Trash2 } from "lucide-react";
 import "../stylesheet/TomorrowTracker.css";
 import { apiFetch } from "../api";
+import { MAX_HABITS } from "../constants";
 
 const TomorrowTracker = () => {
   const [habits, setHabits] = useState([]);
@@ -84,7 +85,7 @@ const TomorrowTracker = () => {
 
   const handleAddHabit = async (event) => {
     event.preventDefault();
-    if (!newHabitName.trim() || habits.length >= 5 || isSubmitting) return;
+    if (!newHabitName.trim() || habits.length >= MAX_HABITS || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
@@ -150,7 +151,7 @@ const TomorrowTracker = () => {
             <h2>Set up tomorrow.</h2>
             <p>Keep the plan kind, clear, and doable.</p>
           </div>
-          <span className="habit-count-pill">{habits.length} of 5 habits</span>
+          <span className="habit-count-pill">{habits.length} of {MAX_HABITS} habits</span>
         </div>
 
         {error && <div className="error-banner" role="alert">{error}</div>}
@@ -210,8 +211,8 @@ const TomorrowTracker = () => {
           ))}
         </section>
 
-        <section className={`card add-card ${habits.length >= 5 ? "limit-reached" : ""}`}>
-          {habits.length >= 5 ? (
+        <section className={`card add-card ${habits.length >= MAX_HABITS ? "limit-reached" : ""}`}>
+          {habits.length >= MAX_HABITS ? (
             <p className="limit-message">Tomorrow's plan is full. A short list is easier to follow through on.</p>
           ) : !isAdding ? (
             <button type="button" className="btn-open-add" onClick={() => setIsAdding(true)}>

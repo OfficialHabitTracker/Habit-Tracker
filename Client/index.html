@@ -4,14 +4,14 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/images/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f3f5ef" />
-    <meta name="description" content="Build a calmer, more consistent routine with five thoughtful habits, daily check-ins, and a view of your progress." />
+    <meta name="theme-color" content="#111813" />
+    <meta name="description" content="Build a calmer, more consistent routine with up to eight thoughtful habits, daily check-ins, and a view of your progress." />
     <script>
       try {
-        document.documentElement.dataset.theme =
-          localStorage.getItem("habit-tracker-theme") === "dark" ? "dark" : "light";
+        const savedTheme = localStorage.getItem("habit-tracker-theme-v2");
+        document.documentElement.dataset.theme = savedTheme === "light" ? "light" : "dark";
       } catch {
-        document.documentElement.dataset.theme = "light";
+        document.documentElement.dataset.theme = "dark";
       }
     </script>
     <title>Habit Tracker</title>

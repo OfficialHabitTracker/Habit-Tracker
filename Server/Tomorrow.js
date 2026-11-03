@@ -1,5 +1,6 @@
 const express = require("express");
 const requireLogin = require("./auth");
+const MAX_HABITS = require("./habitLimits");
 
 function createTomorrowRouter({ databaseQuery, jwtSecret }) {
   const router = express.Router();
@@ -49,10 +50,10 @@ function createTomorrowRouter({ databaseQuery, jwtSecret }) {
         "SELECT COUNT(*) AS count FROM tomorrow_habits WHERE user_id = ?",
         [req.userId],
       );
-      if (Number(habitCount[0]?.count || 0) >= 5) {
+      if (Number(habitCount[0]?.count || 0) >= MAX_HABITS) {
         return res.status(409).json({
           success: false,
-          message: "You can plan up to 5 habits for tomorrow.",
+          message: `You can plan up to ${MAX_HABITS} habits for tomorrow.`,
         });
       }
 

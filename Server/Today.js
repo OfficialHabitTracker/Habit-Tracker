@@ -1,5 +1,6 @@
 const express = require("express");
 const requireLogin = require("./auth");
+const MAX_HABITS = require("./habitLimits");
 
 function getLocalDateString(date = new Date()) {
   const year = date.getFullYear();
@@ -160,10 +161,10 @@ function createTodayRouter({ databaseQuery, jwtSecret }) {
         "SELECT COUNT(*) AS count FROM habits WHERE user_id = ?",
         [req.userId],
       );
-      if (Number(habitCount[0]?.count || 0) >= 5) {
+      if (Number(habitCount[0]?.count || 0) >= MAX_HABITS) {
         return res.status(409).json({
           success: false,
-          message: "You can keep up to 5 habits in today's routine.",
+          message: `You can keep up to ${MAX_HABITS} habits in today's routine.`,
         });
       }
 

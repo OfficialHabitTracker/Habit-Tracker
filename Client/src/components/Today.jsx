@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Trash2 } from "lucide-react";
 import "../stylesheet/Today.css";
 import { apiFetch } from "../api";
+import { MAX_HABITS } from "../constants";
 
 const Today = () => {
   const [habits, setHabits] = useState([]);
@@ -174,7 +175,7 @@ const Today = () => {
 
   const handleAddHabit = async (event) => {
     event.preventDefault();
-    if (!newHabitName.trim() || habits.length >= 5 || isSubmitting) return;
+    if (!newHabitName.trim() || habits.length >= MAX_HABITS || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
@@ -223,7 +224,7 @@ const Today = () => {
             <h2>Make today count.</h2>
             <p>Small steps add up. Pick a pace you can keep.</p>
           </div>
-          <span className="habit-count-pill">{habits.length} of 5 habits</span>
+          <span className="habit-count-pill">{habits.length} of {MAX_HABITS} habits</span>
         </div>
 
         {error && <div className="error-banner" role="alert">{error}</div>}
@@ -317,9 +318,9 @@ const Today = () => {
           ))}
         </section>
 
-        <section className={`card add-card ${habits.length >= 5 ? "limit-reached" : ""}`}>
-          {habits.length >= 5 ? (
-            <p className="limit-message">Your daily plan is full. Five habits is plenty to focus on.</p>
+        <section className={`card add-card ${habits.length >= MAX_HABITS ? "limit-reached" : ""}`}>
+          {habits.length >= MAX_HABITS ? (
+            <p className="limit-message">Your daily plan is full. You can track up to eight habits.</p>
           ) : !isAdding ? (
             <button type="button" className="btn-open-add" onClick={() => setIsAdding(true)}>
               <span aria-hidden="true">+</span> Add a habit

@@ -4,7 +4,7 @@ const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() =>
-    document.documentElement.dataset.theme === "dark" ? "dark" : "light",
+    document.documentElement.dataset.theme === "light" ? "light" : "dark",
   );
 
   useLayoutEffect(() => {
@@ -14,7 +14,7 @@ export function ThemeProvider({ children }) {
       ?.setAttribute("content", theme === "dark" ? "#111813" : "#f3f5ef");
 
     try {
-      window.localStorage.setItem("habit-tracker-theme", theme);
+      window.localStorage.setItem("habit-tracker-theme-v2", theme);
     } catch {
       // The theme still works for this session when browser storage is unavailable.
     }
