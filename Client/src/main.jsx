@@ -16,6 +16,7 @@ import VerifyOTP from "./components/OTP.jsx";
 import RequireAuth from "./components/RequireAuth.jsx";
 import { apiFetch } from "./api";
 import "./stylesheet/responsive.css";
+import "./stylesheet/dashboard.css";
 
 async function redirectSignedInUser({ request }) {
   try {

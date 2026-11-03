@@ -138,7 +138,14 @@ const WeekTracker = () => {
   return (
     <div className="tracker-wrapper">
       <div className="tracker-container">
-        {error && <div className="error-banner" style={{ color: "red", marginBottom: "1rem" }}>{error}</div>}
+        <div className="page-heading">
+          <div>
+            <span className="page-eyebrow">YOUR BIGGER PICTURE</span>
+            <h2>Look back, move forward.</h2>
+            <p>Notice what is working and make next week easier.</p>
+          </div>
+        </div>
+        {error && <div className="error-banner" role="alert">{error}</div>}
 
         <div className="week-nav-header">
           <button type="button" className="nav-arrow-btn" aria-label="Previous week" onClick={() => shiftWeek(-1)}>‹</button>
@@ -148,8 +155,11 @@ const WeekTracker = () => {
 
         <div className="card score-card">
           <div className="score-header">
-            <span className="score-label">Weekly average</span>
-            <span className="score-value">{weeklyAvg}%</span>
+            <div className="score-copy">
+              <span className="score-label">Weekly average</span>
+              <span className="score-subtitle">{activeDays.length} days tracked</span>
+            </div>
+            <span className="score-value">{weeklyAvg}<small>%</small></span>
           </div>
           <div className="progress-bar-bg">
             <div className="progress-bar-fill" style={{ width: `${weeklyAvg}%` }}></div>

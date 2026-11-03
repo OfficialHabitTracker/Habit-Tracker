@@ -59,6 +59,14 @@ function createTodayRouter({ databaseQuery, jwtSecret }) {
   router.get("/", async (req, res) => {
     const date = getLocalDateString();
     try {
+      await databaseQuery(
+        "UPDATE habits SET weight = 5 WHERE user_id = ? AND weight > 5",
+        [req.userId],
+      );
+      await databaseQuery(
+        "UPDATE daily_habit_logs SET weight = 5 WHERE user_id = ? AND log_date = ? AND weight > 5",
+        [req.userId, date],
+      );
       const habits = await databaseQuery(
         "SELECT id, name, type, weight FROM habits WHERE user_id = ? ORDER BY id",
         [req.userId],
@@ -78,16 +86,50 @@ function createTodayRouter({ databaseQuery, jwtSecret }) {
       }
 
       await refreshDailyScore(databaseQuery, req.userId, date);
+      const dailyLog = await databaseQuery(
+        "SELECT check_in_notes FROM daily_logs WHERE user_id = ? AND log_date = ? ORDER BY id DESC LIMIT 1",
+        [req.userId, date],
+      );
       return res.json({
         success: true,
         habits: habits.map((habit) => savedById.get(String(habit.id))),
-        notes: "",
+        notes: dailyLog[0]?.check_in_notes || "",
       });
     } catch (error) {
       console.error("Failed to fetch today's data:", error.message);
       return res.status(500).json({
         success: false,
         message: "Server error. Could not fetch habits.",
+      });
+    }
+  });
+
+  router.post("/notes", async (req, res) => {
+    const { notes } = req.body || {};
+    if (typeof notes !== "string" || notes.length > 5000) {
+      return res.status(400).json({
+        success: false,
+        message: "Notes must be text with a maximum of 5,000 characters.",
+      });
+    }
+
+    const date = getLocalDateString();
+    try {
+      await refreshDailyScore(databaseQuery, req.userId, date);
+      const dailyLog = await databaseQuery(
+        "SELECT id FROM daily_logs WHERE user_id = ? AND log_date = ? ORDER BY id DESC LIMIT 1",
+        [req.userId, date],
+      );
+      await databaseQuery(
+        "UPDATE daily_logs SET check_in_notes = ? WHERE id = ? AND user_id = ?",
+        [notes, dailyLog[0].id, req.userId],
+      );
+      return res.json({ success: true });
+    } catch (error) {
+      console.error("Failed to save today's notes:", error.message);
+      return res.status(500).json({
+        success: false,
+        message: "Server error. Could not save today's notes.",
       });
     }
   });
@@ -104,16 +146,27 @@ function createTodayRouter({ databaseQuery, jwtSecret }) {
       !["Good", "Bad"].includes(type) ||
       !Number.isSafeInteger(weight) ||
       weight < 1 ||
-      weight > 100 ||
+      weight > 5 ||
       !["Done", "Partial", "Missed"].includes(status)
     ) {
       return res.status(400).json({
         success: false,
-        message: "Enter a habit name, type, weight, and valid status.",
+        message: "Enter a habit name, type, and weight from 1 to 5.",
       });
     }
 
     try {
+      const habitCount = await databaseQuery(
+        "SELECT COUNT(*) AS count FROM habits WHERE user_id = ?",
+        [req.userId],
+      );
+      if (Number(habitCount[0]?.count || 0) >= 5) {
+        return res.status(409).json({
+          success: false,
+          message: "You can keep up to 5 habits in today's routine.",
+        });
+      }
+
       const result = await databaseQuery(
         "INSERT INTO habits (user_id, name, type, weight, status) VALUES (?, ?, ?, ?, ?)",
         [req.userId, name, type, weight, status],
@@ -145,8 +198,8 @@ function createTodayRouter({ databaseQuery, jwtSecret }) {
     }
 
     const parsedWeight = weight === undefined ? undefined : Number(weight);
-    if (parsedWeight !== undefined && (!Number.isSafeInteger(parsedWeight) || parsedWeight < 1 || parsedWeight > 100)) {
-      return res.status(400).json({ success: false, message: "Weight must be between 1 and 100." });
+    if (parsedWeight !== undefined && (!Number.isSafeInteger(parsedWeight) || parsedWeight < 1 || parsedWeight > 5)) {
+      return res.status(400).json({ success: false, message: "Weight must be between 1 and 5." });
     }
     if (status === undefined && parsedWeight === undefined) {
       return res.status(400).json({ success: false, message: "No habit changes were provided." });

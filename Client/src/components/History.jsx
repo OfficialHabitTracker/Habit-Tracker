@@ -76,21 +76,25 @@ const History = () => {
   return (
     <div className="tracker-wrapper">
       <div className="tracker-container">
+        <div className="page-heading">
+          <div>
+            <span className="page-eyebrow">YOUR JOURNEY</span>
+            <h2>Every day adds up.</h2>
+            <p>Open a day to see the small wins behind your score.</p>
+          </div>
+          <span className="habit-count-pill">{historyData.length} days logged</span>
+        </div>
         {error && (
-          <div
-            className="error-banner"
-            style={{ color: "red", marginBottom: "1rem" }}
-          >
+          <div className="error-banner" role="alert">
             {error}
           </div>
         )}
 
         <div className="history-list">
           {historyData.length === 0 ? (
-            <div
-              style={{ color: "#8a99ad", textAlign: "center", padding: "20px" }}
-            >
-              No history records found.
+            <div className="empty-state">
+              <strong>Your story starts today.</strong>
+              <span>Check in on a habit and your daily progress will show up here.</span>
             </div>
           ) : (
             historyData.map((item) => {
@@ -99,20 +103,22 @@ const History = () => {
 
               return (
                 <div key={item.id} className="history-card-wrapper">
-                  <div
+                  <button
+                    type="button"
                     className={`card history-card ${isExpanded ? "expanded" : ""}`}
                     onClick={() => handleRowClick(item)}
+                    aria-expanded={isExpanded}
                   >
                     <span className="history-date">{item.dateLabel}</span>
-                    <div className="history-right">
+                    <span className="history-right">
                       <span className={`history-score ${scoreClass}`}>
                         {item.score}%
                       </span>
                       <span className={`chevron ${isExpanded ? "open" : ""}`}>
                         ›
                       </span>
-                    </div>
-                  </div>
+                    </span>
+                  </button>
 
                   {/* Expandable Breakdown view when clicked */}
                   {isExpanded && (

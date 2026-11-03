@@ -5,8 +5,8 @@ import {
   Moon,
   Clock3,
   ChartNoAxesColumn,
-  CircleCheck,
   LogOut,
+  Sprout,
 } from "lucide-react";
 import { apiFetch } from "../api";
 import "../stylesheet/Navbar.css";
@@ -70,15 +70,12 @@ export default function Navbar() {
     <header className="habit-header">
       <div className="habit-header-top">
         <div className="habit-brand">
+          <span className="brand-mark" aria-hidden="true"><Sprout size={21} strokeWidth={2} /></span>
           <h1>Habit Tracker</h1>
           <p>{formattedDate}</p>
         </div>
 
         <div className="header-actions">
-          <div className="save-status">
-            <CircleCheck size={16} strokeWidth={2} />
-            <span>Saved</span>
-          </div>
           <button
             type="button"
             className="logout-button"

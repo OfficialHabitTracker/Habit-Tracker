@@ -7,6 +7,10 @@ function createTomorrowRouter({ databaseQuery, jwtSecret }) {
 
   router.get("/", async (req, res) => {
     try {
+      await databaseQuery(
+        "UPDATE tomorrow_habits SET weight = 5 WHERE user_id = ? AND weight > 5",
+        [req.userId],
+      );
       const habits = await databaseQuery(
         "SELECT id, name, type, weight FROM tomorrow_habits WHERE user_id = ? ORDER BY id",
         [req.userId],
@@ -32,15 +36,26 @@ function createTomorrowRouter({ databaseQuery, jwtSecret }) {
       !["Good", "Bad"].includes(type) ||
       !Number.isSafeInteger(weight) ||
       weight < 1 ||
-      weight > 100
+      weight > 5
     ) {
       return res.status(400).json({
         success: false,
-        message: "Enter a habit name, type, and weight between 1 and 100.",
+        message: "Enter a habit name, type, and weight from 1 to 5.",
       });
     }
 
     try {
+      const habitCount = await databaseQuery(
+        "SELECT COUNT(*) AS count FROM tomorrow_habits WHERE user_id = ?",
+        [req.userId],
+      );
+      if (Number(habitCount[0]?.count || 0) >= 5) {
+        return res.status(409).json({
+          success: false,
+          message: "You can plan up to 5 habits for tomorrow.",
+        });
+      }
+
       const result = await databaseQuery(
         "INSERT INTO tomorrow_habits (user_id, name, type, weight) VALUES (?, ?, ?, ?)",
         [req.userId, name, type, weight],
@@ -64,8 +79,8 @@ function createTomorrowRouter({ databaseQuery, jwtSecret }) {
     if (!Number.isSafeInteger(habitId) || habitId < 1) {
       return res.status(400).json({ success: false, message: "Invalid habit id." });
     }
-    if (!Number.isSafeInteger(weight) || weight < 1 || weight > 100) {
-      return res.status(400).json({ success: false, message: "Weight must be between 1 and 100." });
+    if (!Number.isSafeInteger(weight) || weight < 1 || weight > 5) {
+      return res.status(400).json({ success: false, message: "Weight must be between 1 and 5." });
     }
 
     try {
