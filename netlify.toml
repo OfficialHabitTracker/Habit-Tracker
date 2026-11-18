@@ -1,0 +1,24 @@
+# The app is a Vite + React single-page app in Client/. The root package.json
+# has no dependencies, so install the Client's own dependencies before running
+# the root build script (`npm run build --prefix Client`).
+[build]
+  command = "npm ci --prefix Client && npm run build"
+  publish = "Client/dist"
+
+[build.environment]
+  # Vite 8 requires Node 20.19+ or 22.12+.
+  NODE_VERSION = "22"
+
+# Mirrors Client/vercel.json: the client calls /api on its own origin, which is
+# proxied to the existing Express API deployment.
+[[redirects]]
+  from = "/api/*"
+  to = "https://habit-tracker-server-roan.vercel.app/api/:splat"
+  status = 200
+  force = true
+
+# Client-side routing (react-router): serve index.html for unknown paths.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
