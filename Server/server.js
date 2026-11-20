@@ -38,8 +38,11 @@ const authCookieOptions = {
 };
 
 const dbSslCa = process.env.DB_SSL_CA?.replace(/\\n/g, "\n");
-if (process.env.DB_SSL === "true" && !dbSslCa) {
-  throw new Error("DB_SSL_CA is required when DB_SSL=true. Add your database provider's CA certificate.");
+function getDbSslOptions() {
+  if (process.env.DB_SSL !== "true") return undefined;
+  return dbSslCa
+    ? { ca: dbSslCa, rejectUnauthorized: true }
+    : { rejectUnauthorized: true };
 }
 
 if (!JWT_SECRET && require.main === module) {
@@ -78,9 +81,7 @@ app.use(cookieParser());
 const db = mysql.createPool({
   host: process.env.DB_HOST || "localhost",
   port: Number(process.env.DB_PORT) || 3306,
-  ssl: process.env.DB_SSL === "true"
-    ? { ca: dbSslCa, rejectUnauthorized: true }
-    : undefined,
+  ssl: getDbSslOptions(),
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME || "Habit_Tracker",
@@ -111,7 +112,7 @@ app.use("/api", async (req, res, next) => {
     return res.status(503).json({
       success: false,
       code: errorCode,
-      message: `Database setup failed (${errorCode}). Check the Server Vercel database settings and Aiven access rules.`,
+      message: `Database setup failed (${errorCode}). Check the Server Vercel database settings and provider access rules.`,
     });
   }
 });

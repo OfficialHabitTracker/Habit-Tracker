@@ -11,8 +11,11 @@ const databaseName = process.env.DB_NAME || "Habit_Tracker";
 const dbSslCa = process.env.DB_SSL_CA?.replace(/\\n/g, "\n");
 let readinessPromise;
 
-if (process.env.DB_SSL === "true" && !dbSslCa) {
-  throw new Error("DB_SSL_CA is required when DB_SSL=true. Add your database provider's CA certificate.");
+function getDbSslOptions() {
+  if (process.env.DB_SSL !== "true") return undefined;
+  return dbSslCa
+    ? { ca: dbSslCa, rejectUnauthorized: true }
+    : { rejectUnauthorized: true };
 }
 
 function connectionOptions(includeDatabase) {
@@ -21,9 +24,7 @@ function connectionOptions(includeDatabase) {
     port: Number(process.env.DB_PORT) || 3306,
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD,
-    ssl: process.env.DB_SSL === "true"
-      ? { ca: dbSslCa, rejectUnauthorized: true }
-      : undefined,
+    ssl: getDbSslOptions(),
   };
   if (includeDatabase) options.database = databaseName;
   return options;
