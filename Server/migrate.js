@@ -8,11 +8,13 @@ const mysqlCore = require("mysql2");
 const migrationLockName = "habit_tracker_schema_migrations";
 const migrationsDirectory = path.join(__dirname, "migrations");
 const databaseName = process.env.DB_NAME || "Habit_Tracker";
+const databaseHost = process.env.DB_HOST || "localhost";
 const dbSslCa = process.env.DB_SSL_CA?.replace(/\\n/g, "\n");
 let readinessPromise;
 
 function getDbSslOptions() {
-  if (process.env.DB_SSL !== "true") return undefined;
+  const isEnzonicHost = databaseHost.toLowerCase().endsWith(".db.enzonic.com");
+  if (process.env.DB_SSL !== "true" && !isEnzonicHost) return undefined;
   return dbSslCa
     ? { ca: dbSslCa, rejectUnauthorized: true }
     : { rejectUnauthorized: true };
@@ -20,7 +22,7 @@ function getDbSslOptions() {
 
 function connectionOptions(includeDatabase) {
   const options = {
-    host: process.env.DB_HOST || "localhost",
+    host: databaseHost,
     port: Number(process.env.DB_PORT) || 3306,
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD,

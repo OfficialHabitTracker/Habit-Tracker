@@ -27,6 +27,7 @@ const isProduction = process.env.NODE_ENV === "production" || Boolean(process.en
 const cookieSameSite = process.env.COOKIE_SAME_SITE || "lax";
 const sessionDurationSeconds = 30 * 24 * 60 * 60;
 const sessionDurationMilliseconds = sessionDurationSeconds * 1000;
+const databaseHost = process.env.DB_HOST || "localhost";
 const defaultClientOrigin = isProduction
   ? "https://habit-tracker-seven-ebon.vercel.app"
   : "http://localhost:5173";
@@ -39,7 +40,8 @@ const authCookieOptions = {
 
 const dbSslCa = process.env.DB_SSL_CA?.replace(/\\n/g, "\n");
 function getDbSslOptions() {
-  if (process.env.DB_SSL !== "true") return undefined;
+  const isEnzonicHost = databaseHost.toLowerCase().endsWith(".db.enzonic.com");
+  if (process.env.DB_SSL !== "true" && !isEnzonicHost) return undefined;
   return dbSslCa
     ? { ca: dbSslCa, rejectUnauthorized: true }
     : { rejectUnauthorized: true };
@@ -79,7 +81,7 @@ app.use(cors({
 app.use(cookieParser());
 
 const db = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
+  host: databaseHost,
   port: Number(process.env.DB_PORT) || 3306,
   ssl: getDbSslOptions(),
   user: process.env.DB_USER || "root",
@@ -112,7 +114,9 @@ app.use("/api", async (req, res, next) => {
     return res.status(503).json({
       success: false,
       code: errorCode,
-      message: `Database setup failed (${errorCode}). Check the Server Vercel database settings and provider access rules.`,
+      message: errorCode === "ER_SECURE_TRANSPORT_REQUIRED"
+        ? "The database requires TLS. Set DB_SSL=true in the Server Vercel environment variables, then redeploy."
+        : `Database setup failed (${errorCode}). Check the Server Vercel database settings and provider access rules.`,
     });
   }
 });
