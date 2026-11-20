@@ -106,6 +106,8 @@ app.use("/api", async (req, res, next) => {
       code: errorCode,
       message: errorCode === "ER_SECURE_TRANSPORT_REQUIRED"
         ? "The database requires TLS. Set DB_SSL=true in the Server Vercel environment variables, then redeploy."
+        : errorCode === "ENOTFOUND"
+          ? "The database hostname could not be resolved. Check that DB_HOST is only the hostname, or put the full mysql:// connection string in DATABASE_URL."
         : `Database setup failed (${errorCode}). Check the Server Vercel database settings and provider access rules.`,
     });
   }

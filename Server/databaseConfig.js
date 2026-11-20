@@ -7,7 +7,9 @@ function decodeUrlPart(value) {
 }
 
 function getDatabaseConfig() {
-  const connectionString = process.env.DATABASE_URL;
+  const hostValue = process.env.DB_HOST?.trim();
+  const connectionString = process.env.DATABASE_URL
+    || (/^(?:mysql|mariadb):\/\//i.test(hostValue || "") ? hostValue : "");
   if (connectionString) {
     let connectionUrl;
     try {
