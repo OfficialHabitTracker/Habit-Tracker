@@ -4,31 +4,21 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const mysql = require("mysql2/promise");
 const mysqlCore = require("mysql2");
+const { getDatabaseConfig, getDatabaseSslOptions } = require("./databaseConfig");
 
 const migrationLockName = "habit_tracker_schema_migrations";
 const migrationsDirectory = path.join(__dirname, "migrations");
-const databaseName = process.env.DB_NAME || "Habit_Tracker";
-const databaseHost = process.env.DB_HOST || "localhost";
+const databaseConfig = getDatabaseConfig();
+const databaseName = databaseConfig.database;
 const dbSslCa = process.env.DB_SSL_CA?.replace(/\\n/g, "\n");
 let readinessPromise;
 
-function getDbSslOptions() {
-  const isEnzonicHost = databaseHost.toLowerCase().endsWith(".db.enzonic.com");
-  if (process.env.DB_SSL !== "true" && !isEnzonicHost) return undefined;
-  return dbSslCa
-    ? { ca: dbSslCa, rejectUnauthorized: true }
-    : { rejectUnauthorized: true };
-}
-
 function connectionOptions(includeDatabase) {
   const options = {
-    host: databaseHost,
-    port: Number(process.env.DB_PORT) || 3306,
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD,
-    ssl: getDbSslOptions(),
+    ...databaseConfig,
+    ssl: getDatabaseSslOptions(databaseConfig.host, dbSslCa),
   };
-  if (includeDatabase) options.database = databaseName;
+  if (!includeDatabase) delete options.database;
   return options;
 }
 

@@ -1,6 +1,7 @@
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
+const { getDatabaseConfig, getDatabaseSslOptions } = require("./databaseConfig");
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -27,7 +28,7 @@ const isProduction = process.env.NODE_ENV === "production" || Boolean(process.en
 const cookieSameSite = process.env.COOKIE_SAME_SITE || "lax";
 const sessionDurationSeconds = 30 * 24 * 60 * 60;
 const sessionDurationMilliseconds = sessionDurationSeconds * 1000;
-const databaseHost = process.env.DB_HOST || "localhost";
+const databaseConfig = getDatabaseConfig();
 const defaultClientOrigin = isProduction
   ? "https://habit-tracker-seven-ebon.vercel.app"
   : "http://localhost:5173";
@@ -39,13 +40,6 @@ const authCookieOptions = {
 };
 
 const dbSslCa = process.env.DB_SSL_CA?.replace(/\\n/g, "\n");
-function getDbSslOptions() {
-  const isEnzonicHost = databaseHost.toLowerCase().endsWith(".db.enzonic.com");
-  if (process.env.DB_SSL !== "true" && !isEnzonicHost) return undefined;
-  return dbSslCa
-    ? { ca: dbSslCa, rejectUnauthorized: true }
-    : { rejectUnauthorized: true };
-}
 
 if (!JWT_SECRET && require.main === module) {
   throw new Error("JWT_SECRET is missing. Add it to Server/.env.");
@@ -81,12 +75,8 @@ app.use(cors({
 app.use(cookieParser());
 
 const db = mysql.createPool({
-  host: databaseHost,
-  port: Number(process.env.DB_PORT) || 3306,
-  ssl: getDbSslOptions(),
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME || "Habit_Tracker",
+  ...databaseConfig,
+  ssl: getDatabaseSslOptions(databaseConfig.host, dbSslCa),
   waitForConnections: true,
   connectionLimit: Math.max(1, Number(process.env.DB_CONNECTION_LIMIT) || 5),
   queueLimit: 0,
