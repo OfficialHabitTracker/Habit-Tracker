@@ -10,7 +10,7 @@ function App() {
           <div className="logo-placeholder">
             <img src="../images/logo.png" alt="Habit Tracker Logo" />
           </div>
-          <span>habit tracker</span>
+          <span>Life as a Game </span>
         </a>
 
         <div className="nav-actions">

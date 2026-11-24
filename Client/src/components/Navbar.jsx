@@ -72,7 +72,7 @@ export default function Navbar() {
       <div className="habit-header-top">
         <div className="habit-brand">
           <span className="brand-mark" aria-hidden="true"><Sprout size={21} strokeWidth={2} /></span>
-          <h1>Habit Tracker</h1>
+          <h1>Life as a Game</h1>
           <p>{formattedDate}</p>
         </div>
 
