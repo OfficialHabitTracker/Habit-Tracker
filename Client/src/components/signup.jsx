@@ -49,7 +49,7 @@ function Signup() {
           <img src="./images/logo.png" alt="Habit Tracker Logo" />
         </Link>
         <Link to="/" className="auth-brand-name">
-          habit tracker
+          Life as a Game
         </Link>
         <ThemeToggle />
       </div>

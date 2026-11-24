@@ -162,7 +162,7 @@ function App() {
               <div className="logo-placeholder">
                 <img src="../images/logo.png" alt="Habit Tracker Logo" />
               </div>
-              habit tracker
+           Life as a Game
             </div>
             <p>
               Better habits. Better days.
@@ -187,7 +187,7 @@ function App() {
         </div>
 
         <div className="footer-bottom">
-          <span>© 2026 Habit Tracker. All rights reserved.</span>
+          <span>© 2026 Life as a Game. All rights reserved.</span>
           <span>Made for a better you. ✳</span>
         </div>
       </footer>
